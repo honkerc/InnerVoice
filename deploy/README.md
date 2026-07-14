@@ -58,7 +58,10 @@ python -m uvicorn main:app --host 127.0.0.1 --port 8001
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
 | `AI_API_KEY` | AI API Key（可选，也可在 settings 页面设置） | 空 |
+| `PORT` | 后端监听端口 | `8001` |
 | `VITE_API_ORIGIN` | 前端直连后端地址（上传/SSE） | `http://127.0.0.1:8001` |
+
+> 部署时可通过 `PORT=8080` 修改后端端口，同时需同步修改 Nginx 配置中的 `proxy_pass` 地址。
 
 ### 5. 默认账户
 
