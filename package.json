@@ -1,0 +1,18 @@
+{
+  "name": "yushenduihua",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix frontend-vue",
+    "dev:vue": "npm run dev --prefix frontend-vue",
+    "build:vue": "npm run build --prefix frontend-vue",
+    "backend": "cd backend && python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000"
+  },
+  "dependencies": {
+    "@types/node": "^22.15.21",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/tsconfig": "^0.7.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.2.0",
+    "vue-tsc": "^2.2.8"
+  }
+}
