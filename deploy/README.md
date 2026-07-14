@@ -1,21 +1,23 @@
-# 与神对话 - 部署说明
+# InnerVoice - 部署说明
 
 ## 目录结构
 
 ```
-与神对话/
-├── backend/          # Python FastAPI 后端（端口 8001）
-├── frontend-vue/     # Vue 3 前端
-├── deploy/           # 部署配置
-│   ├── nginx.conf    # Nginx 配置
-│   └── README.md     # 本文件
-└── package.json      # 根项目脚本
+InnerVoice/
+├── backend/              # Python FastAPI 后端
+├── frontend-vue/         # Vue 3 前端
+├── deploy/               # 部署配置
+│   ├── nginx.conf        # Nginx 反向代理配置
+│   ├── innervoice.service # systemd 服务文件
+│   ├── start.sh          # 一键启动脚本
+│   └── README.md         # 本文件
+└── package.json          # 根项目脚本
 ```
 
 ## 快速启动（开发）
 
 ```bash
-# 1. 启动后端（端口 8001）
+# 1. 启动后端（默认端口 8001）
 cd backend
 python -m uvicorn main:app --reload --host 127.0.0.1 --port 8001
 
@@ -36,32 +38,53 @@ npm run build
 
 ### 2. 配置 Nginx
 
-- 复制 `deploy/nginx.conf` 到 `/etc/nginx/sites-available/yushenduihua`
+- 复制 `deploy/nginx.conf` 到 `/etc/nginx/sites-available/innervoice`
 - 修改 `server_name` 和 `root` 路径
-- 软链到 `sites-enabled`：`ln -s /etc/nginx/sites-available/yushenduihua /etc/nginx/sites-enabled/`
-- 测试配置：`nginx -t`
+- 软链：`ln -s /etc/nginx/sites-available/innervoice /etc/nginx/sites-enabled/`
+- 测试：`nginx -t`
 - 重载：`systemctl reload nginx`
 
-### 3. 启动后端（生产）
+### 3. 启动后端
+
+#### 方式一：一键脚本
 
 ```bash
-cd backend
-# 方式一：直接运行
-python -m uvicorn main:app --host 127.0.0.1 --port 8001
+# 默认端口 8001
+bash deploy/start.sh
 
-# 方式二：使用 systemd（推荐）
-# 创建 /etc/systemd/system/yushenduihua.service
+# 自定义端口
+INNERVOICE_PORT=8080 bash deploy/start.sh
+
+# 自定义数据目录
+INNERVOICE_DATA_DIR=/var/lib/innervoice/data bash deploy/start.sh
+```
+
+#### 方式二：systemd 服务（推荐）
+
+```bash
+# 1. 修改 deploy/innervoice.service 中的路径和环境变量
+# 2. 复制到系统目录
+sudo cp deploy/innervoice.service /etc/systemd/system/
+
+# 3. 重载并启动
+sudo systemctl daemon-reload
+sudo systemctl enable innervoice
+sudo systemctl start innervoice
+
+# 4. 查看状态
+sudo systemctl status innervoice
 ```
 
 ### 4. 环境变量
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
+| `INNERVOICE_PORT` | 后端监听端口 | `8001` |
+| `INNERVOICE_DATA_DIR` | 数据目录（数据库、上传文件） | `backend/data/` |
 | `AI_API_KEY` | AI API Key（可选，也可在 settings 页面设置） | 空 |
-| `PORT` | 后端监听端口 | `8001` |
 | `VITE_API_ORIGIN` | 前端直连后端地址（上传/SSE） | `http://127.0.0.1:8001` |
 
-> 部署时可通过 `PORT=8080` 修改后端端口，同时需同步修改 Nginx 配置中的 `proxy_pass` 地址。
+> 修改端口后需同步修改 Nginx 配置中的 `proxy_pass` 地址。
 
 ### 5. 默认账户
 

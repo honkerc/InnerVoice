@@ -1,0 +1,32 @@
+[Unit]
+Description=InnerVoice - 私人对话记录与 AI 辅助工具
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/path/to/InnerVoice/backend
+
+# 环境变量
+Environment=INNERVOICE_PORT=8001
+Environment=INNERVOICE_DATA_DIR=/var/lib/innervoice/data
+Environment=AI_API_KEY=your-api-key-here
+
+# 启动命令
+ExecStart=/path/to/InnerVoice/backend/.venv/bin/python -m uvicorn main:app \
+    --host 127.0.0.1 \
+    --port ${INNERVOICE_PORT} \
+    --workers 2 \
+    --log-level info
+
+# 日志
+StandardOutput=journal
+StandardError=journal
+
+# 重启策略
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
