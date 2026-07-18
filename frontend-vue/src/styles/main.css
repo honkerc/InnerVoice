@@ -1971,19 +1971,21 @@ a {
 /* ---- 置顶公告 ---- */
 .pinned-notice {
   position: sticky;
-  top: 0;
+  top: 12px;
   z-index: 20;
-  max-width: var(--layout-width);
-  margin: 0 auto;
+  max-width: calc(var(--layout-width) - var(--layout-padding) * 2);
+  margin: 0 var(--layout-padding) 0;
   background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
   transition: box-shadow 0.2s;
   cursor: pointer;
 }
 
 .pinned-notice:hover {
-  background: #fafafa;
+  box-shadow: var(--shadow);
 }
 
 .pinned-notice--expanded {
@@ -1991,15 +1993,11 @@ a {
   cursor: default;
 }
 
-.pinned-notice--expanded:hover {
-  background: var(--surface);
-}
-
 .pinned-notice__bar {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px var(--layout-padding);
+  padding: 8px 12px;
   font-size: 13px;
   line-height: 1.5;
   user-select: none;
@@ -2058,7 +2056,7 @@ a {
 }
 
 .pinned-notice__markdown {
-  padding: 0 var(--layout-padding) 12px;
+  padding: 0 12px 12px;
   font-size: 14px;
   line-height: 1.6;
 }
