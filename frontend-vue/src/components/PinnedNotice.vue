@@ -1,7 +1,7 @@
 <template>
   <div ref="elRef" v-if="visible" class="pinned-notice" :class="{ 'pinned-notice--expanded': expanded }">
     <div class="pinned-notice__bar" @click="toggleExpand">
-      <span class="pinned-notice__badge">📝 备忘录</span>
+      <span class="pinned-notice__badge">备忘录</span>
       <span class="pinned-notice__preview">{{ previewText }}</span>
       <button type="button" class="pinned-notice__close" title="隐藏公告" @click.stop="handleClose">
         <IconClose :size="14" />
