@@ -50,5 +50,5 @@ async def update_settings(data: dict) -> UserSettings:
     for key, value in data.items():
         if value is not None and hasattr(settings, key):
             setattr(settings, key, value)
-    await settings.save(update_fields=list(data.keys()))
+    await settings.save()
     return settings
