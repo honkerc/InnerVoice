@@ -2011,11 +2011,12 @@ a {
   align-items: center;
   padding: 1px 6px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 400;
   line-height: 1.5;
   color: #fff;
   background: #dc2626;
   border-radius: 4px;
+  font-family: "Arial Black", "Impact", "PingFang SC", sans-serif;
 }
 
 .pinned-notice__preview {
