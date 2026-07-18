@@ -2009,13 +2009,15 @@ a {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
+  gap: 2px;
   padding: 1px 6px;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   line-height: 1.5;
   color: #fff;
-  background: #dc2626;
+  background: #e85d3a;
   border-radius: 4px;
+  font-family: "Comic Sans MS", "Chalkboard SE", "PingFang SC", cursive, sans-serif;
 }
 
 .pinned-notice__preview {
