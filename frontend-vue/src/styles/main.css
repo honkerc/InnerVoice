@@ -1979,10 +1979,20 @@ a {
   border-bottom: 1px solid var(--border);
   overflow: hidden;
   transition: box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.pinned-notice:hover {
+  background: #fafafa;
 }
 
 .pinned-notice--expanded {
   box-shadow: var(--shadow);
+  cursor: default;
+}
+
+.pinned-notice--expanded:hover {
+  background: var(--surface);
 }
 
 .pinned-notice__bar {
@@ -1992,13 +2002,7 @@ a {
   padding: 8px var(--layout-padding);
   font-size: 13px;
   line-height: 1.5;
-  cursor: pointer;
-  transition: background 0.1s;
   user-select: none;
-}
-
-.pinned-notice__bar:hover {
-  background: #fafafa;
 }
 
 .pinned-notice__icon {
