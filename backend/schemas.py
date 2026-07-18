@@ -66,7 +66,6 @@ class SettingsOut(BaseModel):
     aiSystemPrompt: str
     aiThinking: bool = True
     pinnedMessageId: str | None = None
-    avatarTransparent: bool = False
 
 
 class PinMessageRequest(BaseModel):

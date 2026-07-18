@@ -254,14 +254,6 @@ a {
   object-fit: cover;
 }
 
-.msg-avatar--transparent {
-  background: transparent;
-}
-
-.msg-avatar--transparent img {
-  object-fit: contain;
-}
-
 .msg-bubble {
   width: fit-content;
   min-width: 0;

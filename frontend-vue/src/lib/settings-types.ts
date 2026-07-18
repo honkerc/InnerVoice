@@ -10,7 +10,6 @@ export interface UserSettings {
   aiSystemPrompt: string;
   aiThinking: boolean;
   pinnedMessageId?: string | null;
-  avatarTransparent: boolean;
 }
 
 export interface SettingsUpdate {
@@ -22,5 +21,4 @@ export interface SettingsUpdate {
   aiApiKey?: string;
   aiSystemPrompt?: string;
   aiThinking?: boolean;
-  avatarTransparent?: boolean;
 }

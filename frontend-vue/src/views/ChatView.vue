@@ -8,8 +8,7 @@
         <MessageRow v-for="message in messages" :key="message.id" :message="message"
           :pinned="settings?.pinnedMessageId === message.id" :highlighted="highlightedMessageId === message.id"
           :can-quote="!quotedIds.has(message.id) && quote?.id !== message.id" :user-avatar="settings?.avatarUrl"
-          :user-name="settings?.displayName" :ai-model-label="settings?.aiModel"
-          :avatar-transparent="settings?.avatarTransparent" @quote="setQuote" @pin="togglePin"
+          :user-name="settings?.displayName" :ai-model-label="settings?.aiModel" @quote="setQuote" @pin="togglePin"
           @jump-quote="jumpToMessage" @preview-image="lightboxUrl = $event" />
         <StreamAiRow :visible="streaming" :stream="streamState" :ai-model-label="settings?.aiModel"
           @preview-image="lightboxUrl = $event" />

@@ -1,24 +1,18 @@
 <template>
   <div class="settings-page">
-    <main class="settings-main">
-      <div class="settings-top">
-        <button type="button" class="settings-back" title="返回聊天" @click="router.push('/')">
+    <PageHeader title="设置">
+      <template #actions>
+        <IconLink to="/" title="返回">
           <IconChevronLeft />
-          <span>返回</span>
-        </button>
+        </IconLink>
+      </template>
+    </PageHeader>
 
-        <nav class="settings-tabs" aria-label="设置分类">
-          <button v-for="tab in tabs" :key="tab.id" type="button" class="settings-tab"
-            :class="{ 'settings-tab--active': activeTab === tab.id }" @click="activeTab = tab.id">
-            {{ tab.label }}
-          </button>
-        </nav>
-      </div>
-
+    <main class="settings-main">
       <SettingsSkeleton v-if="loading" />
 
-      <div v-else-if="form" class="settings-panel">
-        <section v-show="activeTab === 'profile'" class="settings-card">
+      <div v-else-if="form" class="settings-stack">
+        <section class="settings-card">
           <div class="settings-card__grid">
             <div class="settings-card__col settings-card__col--profile">
               <h2 class="settings-card__title">个人资料</h2>
@@ -54,13 +48,6 @@
                 </div>
               </div>
               <input ref="fileInputRef" class="hidden" type="file" accept="image/*" @change="onAvatarSelect" />
-              <label class="field-checkbox" style="margin-top: 12px">
-                <input v-model="form.avatarTransparent" type="checkbox" class="field-checkbox__input" />
-                <span>
-                  <span class="field-checkbox__text">透明背景头像</span>
-                  <span class="field-checkbox__hint">适用于 PNG 透明头像</span>
-                </span>
-              </label>
             </div>
 
             <div class="settings-card__col settings-card__col--account">
@@ -91,27 +78,14 @@
                   <button class="settings-btn settings-btn--primary" type="submit" :disabled="changingPassword">
                     {{ changingPassword ? "修改中…" : "修改密码" }}
                   </button>
-                  <button class="settings-btn settings-btn--ghost" type="button" @click="handleLogout">
-                    退出登录
-                  </button>
+                  <button class="settings-btn settings-btn--ghost" type="button" @click="handleLogout">退出登录</button>
                 </div>
               </form>
             </div>
           </div>
-
-          <div class="settings-save-bar">
-            <p v-if="message && activeTab === 'profile'"
-              :class="['settings-message', messageError ? 'settings-message--error' : 'settings-message--ok']">
-              {{ message }}
-            </p>
-            <button class="settings-btn settings-btn--primary settings-btn--wide" type="button" :disabled="saving"
-              @click="handleSave">
-              {{ saving ? "保存中…" : "保存设置" }}
-            </button>
-          </div>
         </section>
 
-        <section v-show="activeTab === 'ai'" class="settings-section">
+        <section class="settings-section">
           <h2 class="settings-section__title">AI</h2>
           <p class="settings-section__desc">输入 @ai 或开启工具栏 AI 按钮时调用。</p>
           <div class="settings-fields">
@@ -141,11 +115,7 @@
               <input v-model="apiKeyDraft" class="field-input" type="password" autocomplete="off"
                 :placeholder="form.hasApiKey ? '留空则不修改，输入新 Key 以更换' : 'sk-...'" />
               <span class="field__hint">
-                {{
-                  form.hasApiKey
-                    ? "已配置 Key，仅提交到服务端保存，不会留在浏览器"
-                    : "仅提交到服务端保存，不会留在浏览器"
-                }}
+                {{ form.hasApiKey ? "已配置 Key，仅提交到服务端保存，不会留在浏览器" : "仅提交到服务端保存，不会留在浏览器" }}
               </span>
             </label>
             <label v-if="form.aiProvider === 'deepseek'" class="field-checkbox">
@@ -160,25 +130,14 @@
               <span class="field__hint">定义 AI 人设与语气；DeepSeek 风格排版规则会自动附加</span>
             </label>
           </div>
-
-          <div class="settings-save-bar">
-            <p v-if="message && activeTab === 'ai'"
-              :class="['settings-message', messageError ? 'settings-message--error' : 'settings-message--ok']">
-              {{ message }}
-            </p>
-            <button class="settings-btn settings-btn--primary settings-btn--wide" type="button" :disabled="saving"
-              @click="handleSave">
-              {{ saving ? "保存中…" : "保存设置" }}
-            </button>
-          </div>
         </section>
 
-        <section v-show="activeTab === 'emoji'" class="settings-card">
+        <section class="settings-card">
           <h2 class="settings-card__title">表情列表</h2>
           <p class="settings-card__desc">每行一个 emoji，修改后保存即可在聊天中使用。</p>
           <div class="settings-fields">
             <label class="field">
-              <textarea v-model="emojiDraft" class="field-input field-textarea" rows="8" />
+              <textarea v-model="emojiDraft" class="field-input field-textarea" rows="4" />
             </label>
             <div class="settings-actions">
               <button class="settings-btn settings-btn--primary" type="button" :disabled="savingEmoji"
@@ -196,11 +155,9 @@
           </div>
         </section>
 
-        <section v-show="activeTab === 'import'" class="settings-card">
+        <section class="settings-card">
           <h2 class="settings-card__title">导入 DeepSeek 分享</h2>
-          <p class="settings-card__desc">
-            粘贴 chat.deepseek.com/share/... 链接，按原时间顺序导入你与 AI 的对话。
-          </p>
+          <p class="settings-card__desc">粘贴 chat.deepseek.com/share/... 链接，按原时间顺序导入你与 AI 的对话。</p>
           <div class="settings-fields">
             <label class="field">
               <span class="field__label">分享链接</span>
@@ -248,6 +205,17 @@
             </p>
           </div>
         </section>
+
+        <div class="settings-save-bar">
+          <p v-if="message"
+            :class="['settings-message', messageError ? 'settings-message--error' : 'settings-message--ok']">
+            {{ message }}
+          </p>
+          <button class="settings-btn settings-btn--primary settings-btn--wide" type="button" :disabled="saving"
+            @click="handleSave">
+            {{ saving ? "保存中…" : "保存设置" }}
+          </button>
+        </div>
       </div>
     </main>
   </div>
@@ -256,6 +224,8 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import PageHeader from "@/components/PageHeader.vue";
+import IconLink from "@/components/IconLink.vue";
 import SettingsSkeleton from "@/components/SettingsSkeleton.vue";
 import { IconChevronLeft } from "@/components/icons";
 import {
@@ -277,18 +247,8 @@ import { readEmojiList, writeEmojiList, resetEmojiList } from "@/lib/emoji-stora
 import type { DeepSeekImportMode, DeepSeekSharePreview } from "@/lib/import-types";
 import type { AiProvider, UserSettings } from "@/lib/settings-types";
 
-type SettingsTab = "profile" | "ai" | "emoji" | "import";
-
-const tabs: { id: SettingsTab; label: string }[] = [
-  { id: "profile", label: "个人资料" },
-  { id: "ai", label: "AI" },
-  { id: "emoji", label: "表情" },
-  { id: "import", label: "导入" },
-];
-
 const router = useRouter();
 const username = readUsername() ?? "admin";
-const activeTab = ref<SettingsTab>("profile");
 const loading = ref(true);
 const saving = ref(false);
 const uploading = ref(false);
@@ -313,6 +273,7 @@ const importFeedback = ref("");
 const importError = ref(false);
 const apiKeyDraft = ref("");
 
+// emoji
 const emojiDraft = ref("");
 const savingEmoji = ref(false);
 const emojiMessage = ref("");
@@ -452,7 +413,6 @@ async function handleSave() {
       aiBaseUrl: form.value.aiBaseUrl,
       aiSystemPrompt: form.value.aiSystemPrompt,
       aiThinking: form.value.aiThinking,
-      avatarTransparent: form.value.avatarTransparent,
     };
     const nextKey = apiKeyDraft.value.trim();
     if (nextKey) payload.aiApiKey = nextKey;
