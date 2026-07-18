@@ -85,9 +85,13 @@ defineEmits<{
 const isAi = computed(() => isAiRole(props.message.role));
 const alignRight = computed(() => props.message.role === "me" && isToday(props.message.createdAt));
 const rowClass = computed(() => (alignRight.value ? "msg-row--right" : "msg-row--left"));
-const metaLabel = computed(() =>
-  `${alignRight.value ? "今天" : "过往"} · ${formatMessageTime(props.message.createdAt)}`,
-);
+const displayName = computed(() => props.message.authorDisplayName || props.userName || "我");
+const metaLabel = computed(() => {
+  if (alignRight.value) {
+    return `今天 · ${formatMessageTime(props.message.createdAt)}`;
+  }
+  return `${displayName.value} · ${formatMessageTime(props.message.createdAt)}`;
+});
 const aiTimeLabel = computed(() =>
   aiMetaLabel(props.aiModelLabel, formatMessageTime(props.message.createdAt)),
 );
