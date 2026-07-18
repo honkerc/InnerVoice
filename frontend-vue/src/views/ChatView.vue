@@ -1,5 +1,7 @@
 <template>
   <div class="chat-page" :style="{ '--chat-editor-height': `${editorHeight}px` }">
+    <PinnedNotice :message="pinnedMessage" @jump="jumpToMessage" @unpin="togglePin" />
+
     <main ref="mainRef" class="page-main" :style="{ paddingBottom: `${editorHeight}px` }">
       <ChatSkeleton v-if="loading" />
       <div v-else class="chat-feed">
@@ -44,6 +46,7 @@ import StreamAiRow from "@/components/StreamAiRow.vue";
 import ChatEditor from "@/components/ChatEditor.vue";
 import ScrollToBottomButton from "@/components/ScrollToBottomButton.vue";
 import ChatSkeleton from "@/components/ChatSkeleton.vue";
+import PinnedNotice from "@/components/PinnedNotice.vue";
 
 const MESSAGE_HIGHLIGHT_MS = 2800;
 const BOTTOM_THRESHOLD = 160;
@@ -68,6 +71,12 @@ const scrollAfterSend = ref(false);
 let highlightTimer: ReturnType<typeof setTimeout> | null = null;
 let resizeFrame = 0;
 let streamScrollFrame = 0;
+
+const pinnedMessage = computed(() => {
+  const id = settings.value?.pinnedMessageId;
+  if (!id) return null;
+  return messages.value.find((m) => m.id === id) ?? null;
+});
 
 const quotedIds = computed(() => getQuotedMessageIds(messages.value));
 const streamState = computed<AiStreamState | null>(() => {
@@ -111,7 +120,6 @@ function scheduleStreamScroll() {
 }
 
 onMounted(async () => {
-  document.documentElement.classList.add("chat-scroll-hidden");
   window.addEventListener("scroll", onWindowScroll, { passive: true });
   syncAtBottom();
 
@@ -129,7 +137,6 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  document.documentElement.classList.remove("chat-scroll-hidden");
   window.removeEventListener("scroll", onWindowScroll);
   if (highlightTimer) clearTimeout(highlightTimer);
   cancelAnimationFrame(resizeFrame);
