@@ -1,5 +1,5 @@
 <template>
-  <div v-if="message" class="pinned-notice">
+  <div v-if="message" class="pinned-notice" @click="$emit('jump', message.id)">
     <span class="pinned-notice__icon">📌</span>
     <span class="pinned-notice__text">{{ previewText }}</span>
     <button type="button" class="pinned-notice__close" title="取消置顶" @click.stop="$emit('unpin', message.id)">
