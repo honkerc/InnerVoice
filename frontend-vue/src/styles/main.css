@@ -1973,42 +1973,36 @@ a {
   position: sticky;
   top: 0;
   z-index: 20;
-  max-width: var(--layout-width);
-  margin: 0 auto;
-  padding: 0 var(--layout-padding);
-}
-
-.pinned-notice__inner {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-top: none;
-  border-radius: 0 0 var(--radius) var(--radius);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-}
-
-.pinned-notice__header {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px 0;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.pinned-notice__badge {
-  flex-shrink: 0;
+  max-width: var(--layout-width);
+  margin: 0 auto;
+  padding: 8px var(--layout-padding);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
   font-size: 13px;
-  font-weight: 600;
-  color: var(--accent);
+  line-height: 1.5;
+  cursor: pointer;
+  transition: background 0.1s;
 }
 
-.pinned-notice__meta {
+.pinned-notice:hover {
+  background: #fafafa;
+}
+
+.pinned-notice__icon {
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.pinned-notice__text {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--text-secondary);
 }
 
 .pinned-notice__close {
@@ -2029,33 +2023,6 @@ a {
 .pinned-notice__close:hover {
   background: rgba(0, 0, 0, 0.06);
   color: var(--text);
-}
-
-.pinned-notice__body {
-  display: block;
-  width: 100%;
-  padding: 6px 12px 10px;
-  border: none;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.1s;
-}
-
-.pinned-notice__body:hover {
-  background: rgba(0, 0, 0, 0.02);
-}
-
-.pinned-notice__text {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--text);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  word-break: break-word;
 }
 
 /* ---- 聊天滚动 ---- */

@@ -4,7 +4,7 @@
       <div :class="['chat-editor-panel', { 'chat-editor-panel--expanded': expanded }]">
         <QuoteCard v-if="quotingMessage" :quote="quotingMessage" compact show-close @close="$emit('clearQuote')" />
 
-        <textarea ref="textareaRef" v-model="input" :rows="expanded ? undefined : 5" :disabled="sending || aiThinking"
+        <textarea ref="textareaRef" v-model="input" :rows="expanded ? undefined : 3" :disabled="sending || aiThinking"
           :class="['chat-editor-input', { 'chat-editor-input--expanded': expanded }]" :placeholder="placeholder"
           @keydown="handleKeyDown" />
 
