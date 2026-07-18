@@ -1970,18 +1970,20 @@ a {
 
 /* ---- 置顶公告 ---- */
 .pinned-notice {
-  margin-bottom: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  max-width: var(--layout-width);
+  margin: 0 auto;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-bottom: 1px solid var(--border);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
   transition: box-shadow 0.2s;
   cursor: pointer;
 }
 
 .pinned-notice:hover {
-  box-shadow: var(--shadow);
+  background: #fafafa;
 }
 
 .pinned-notice--expanded {
@@ -1989,11 +1991,15 @@ a {
   cursor: default;
 }
 
+.pinned-notice--expanded:hover {
+  background: var(--surface);
+}
+
 .pinned-notice__bar {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px var(--layout-padding);
   font-size: 13px;
   line-height: 1.5;
   user-select: none;
@@ -2004,13 +2010,12 @@ a {
   display: inline-flex;
   align-items: center;
   padding: 1px 6px;
-  font-size: 12px;
-  font-weight: 400;
+  font-size: 11px;
+  font-weight: 600;
   line-height: 1.5;
   color: #fff;
   background: #dc2626;
   border-radius: 4px;
-  font-family: "Arial Black", "Impact", "PingFang SC", sans-serif;
 }
 
 .pinned-notice__preview {
@@ -2043,16 +2048,17 @@ a {
 }
 
 .pinned-notice__drawer {
-  display: none;
-  border-top: 1px solid var(--border);
+  max-height: 0;
+  overflow: hidden auto;
+  transition: max-height 0.25s ease;
 }
 
 .pinned-notice--expanded .pinned-notice__drawer {
-  display: block;
+  max-height: calc(1.6em * 9 + 24px);
 }
 
 .pinned-notice__markdown {
-  padding: 0 12px 12px;
+  padding: 0 var(--layout-padding) 12px;
   font-size: 14px;
   line-height: 1.6;
 }

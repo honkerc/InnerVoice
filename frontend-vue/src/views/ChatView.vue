@@ -1,7 +1,8 @@
 <template>
   <div class="chat-page" :style="{ '--chat-editor-height': `${editorHeight}px` }">
+    <PinnedNotice :message="pinnedMessage" @jump="jumpToMessage" @unpin="togglePin" />
+
     <main ref="mainRef" class="page-main" :style="{ paddingBottom: `${editorHeight}px` }">
-      <PinnedNotice :message="pinnedMessage" @jump="jumpToMessage" @unpin="togglePin" />
       <ChatSkeleton v-if="loading" />
       <div v-else class="chat-feed">
         <MessageRow v-for="message in messages" :key="message.id" :message="message"
