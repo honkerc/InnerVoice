@@ -2049,13 +2049,12 @@ a {
 }
 
 .pinned-notice__drawer {
-  max-height: 0;
-  overflow: hidden auto;
-  transition: max-height 0.25s ease;
+  display: none;
+  border-top: 1px solid var(--border);
 }
 
 .pinned-notice--expanded .pinned-notice__drawer {
-  max-height: calc(1.6em * 9 + 24px);
+  display: block;
 }
 
 .pinned-notice__markdown {
