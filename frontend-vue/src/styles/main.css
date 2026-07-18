@@ -1728,10 +1728,14 @@ a {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-sm);
+  transition: max-height 0.25s ease, box-shadow 0.25s ease;
+  max-height: 200px;
+  overflow: hidden auto;
 }
 
 .chat-editor-panel--expanded {
-  height: 60vh;
+  max-height: 60vh;
+  box-shadow: var(--shadow);
 }
 
 .chat-editor-input {
