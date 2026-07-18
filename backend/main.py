@@ -136,6 +136,7 @@ async def to_settings_out(settings: UserSettings) -> SettingsOut:
         aiSystemPrompt=settings.ai_system_prompt,
         aiThinking=bool(getattr(settings, "ai_thinking", True)),
         pinnedMessageId=getattr(settings, "pinned_message_id", None),
+        avatarTransparent=bool(getattr(settings, "avatar_transparent", False)),
     )
 
 
@@ -590,6 +591,7 @@ async def save_settings(body: SettingsUpdate) -> SettingsOut:
     mapping = {
         "displayName": "display_name",
         "avatarUrl": "avatar_url",
+        "avatarTransparent": "avatar_transparent",
         "aiProvider": "ai_provider",
         "aiModel": "ai_model",
         "aiBaseUrl": "ai_base_url",

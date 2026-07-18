@@ -31,6 +31,7 @@ class UserSettings(models.Model):
     ai_system_prompt = fields.TextField(default="")
     ai_thinking = fields.BooleanField(default=True)
     pinned_message_id = fields.CharField(max_length=64, null=True)
+    avatar_transparent = fields.BooleanField(default=False)
 
     class Meta:
         table = "user_settings"

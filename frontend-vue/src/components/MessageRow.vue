@@ -19,7 +19,7 @@
   <section v-else class="msg-row" :class="[rowClass, { 'is-highlighted': highlighted }]" :id="`message-${message.id}`">
     <div class="msg-meta">{{ metaLabel }}</div>
     <div class="msg-body" :class="{ 'msg-body--right': alignRight }">
-      <div class="msg-avatar">
+      <div class="msg-avatar" :class="{ 'msg-avatar--transparent': avatarTransparent }">
         <img v-if="avatarUrl" :src="avatarUrl" alt="" />
         <span v-else>{{ avatarLabel }}</span>
       </div>
@@ -73,6 +73,7 @@ const props = defineProps<{
   userAvatar?: string | null;
   userName?: string;
   aiModelLabel?: string;
+  avatarTransparent?: boolean;
 }>();
 
 defineEmits<{
