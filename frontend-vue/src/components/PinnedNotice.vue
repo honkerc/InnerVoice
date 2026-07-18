@@ -7,7 +7,7 @@
         <IconClose :size="14" />
       </button>
     </div>
-    <div v-show="expanded" class="pinned-notice__body">
+    <div class="pinned-notice__drawer">
       <div class="pinned-notice__markdown markdown-body" v-html="markdownHtml" />
     </div>
   </div>
