@@ -84,6 +84,7 @@ class SettingsUpdate(BaseModel):
     aiApiKey: str | None = None
     aiSystemPrompt: str | None = None
     aiThinking: bool | None = None
+    avatarTransparent: bool | None = None
 
 
 class LoginRequest(BaseModel):
