@@ -1970,11 +1970,7 @@ a {
 
 /* ---- 置顶公告 ---- */
 .pinned-notice {
-  position: sticky;
-  top: 12px;
-  z-index: 20;
-  max-width: calc(var(--layout-width) - var(--layout-padding) * 2);
-  margin: 0 var(--layout-padding) 0;
+  margin-bottom: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
