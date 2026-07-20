@@ -9,6 +9,7 @@ class Message(models.Model):
     media_url = fields.CharField(max_length=512, null=True)
     media_name = fields.CharField(max_length=255, null=True)
     attachments = fields.TextField(null=True)
+    tags = fields.TextField(null=True)
     quote_id = fields.CharField(max_length=64, null=True, unique=True)
     reply_to_id = fields.CharField(max_length=64, null=True)
     author_avatar_url = fields.CharField(max_length=512, null=True)
@@ -30,7 +31,8 @@ class UserSettings(models.Model):
     ai_api_key = fields.TextField(default="")
     ai_system_prompt = fields.TextField(default="")
     ai_thinking = fields.BooleanField(default=True)
-    pinned_message_id = fields.CharField(max_length=64, null=True)
+    avatar_transparent = fields.BooleanField(default=False)
+    active_persona_id = fields.CharField(max_length=64, null=True)
 
     class Meta:
         table = "user_settings"
@@ -45,3 +47,26 @@ class User(models.Model):
 
     class Meta:
         table = "users"
+
+
+class Persona(models.Model):
+    id = fields.CharField(pk=True, max_length=64)
+    name = fields.CharField(max_length=64)
+    icon = fields.CharField(max_length=16, null=True)
+    system_prompt = fields.TextField(default="")
+    is_builtin = fields.BooleanField(default=False)
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+    class Meta:
+        table = "personas"
+        ordering = ["created_at"]
+
+
+class Favorite(models.Model):
+    id = fields.CharField(pk=True, max_length=64)
+    message_id = fields.CharField(max_length=64, unique=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+    class Meta:
+        table = "favorites"
+        ordering = ["-created_at"]

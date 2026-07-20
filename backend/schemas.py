@@ -31,6 +31,10 @@ class MessageCreate(BaseModel):
     quoteId: str | None = None
 
 
+class MessageUpdate(BaseModel):
+    content: str
+
+
 class AiReplyRequest(BaseModel):
     triggerMessageId: str
     force: bool = False
@@ -44,6 +48,8 @@ class MessageOut(BaseModel):
     mediaUrl: str | None = None
     mediaName: str | None = None
     attachments: list[MessageAttachmentOut] | None = None
+    tags: list[str] | None = None
+    isFavorited: bool = False
     quoteId: str | None = None
     quote: QuotePreview | None = None
     authorAvatarUrl: str | None = None
@@ -51,6 +57,16 @@ class MessageOut(BaseModel):
     createdAt: datetime
 
     model_config = {"from_attributes": True}
+
+
+class MessageListOut(BaseModel):
+    """分页 / 搜索结果的统一信封。items 始终按 createdAt 升序排列。"""
+
+    items: list[MessageOut]
+    hasMoreBefore: bool = False
+    hasMoreAfter: bool = False
+    total: int | None = None
+    anchorId: str | None = None
 
 
 AiProvider = Literal["deepseek", "openai", "ollama", "custom"]
@@ -65,11 +81,38 @@ class SettingsOut(BaseModel):
     hasApiKey: bool
     aiSystemPrompt: str
     aiThinking: bool = True
-    pinnedMessageId: str | None = None
+    avatarTransparent: bool = False
+    activePersonaId: str | None = None
 
 
-class PinMessageRequest(BaseModel):
-    messageId: str | None = None
+class SetActivePersonaRequest(BaseModel):
+    personaId: str | None = None
+
+
+class PersonaOut(BaseModel):
+    id: str
+    name: str
+    icon: str | None = None
+    systemPrompt: str
+    isBuiltin: bool = False
+
+    model_config = {"from_attributes": True}
+
+
+class PersonaCreate(BaseModel):
+    name: str
+    icon: str | None = None
+    systemPrompt: str = ""
+
+
+class PersonaUpdate(BaseModel):
+    name: str | None = None
+    icon: str | None = None
+    systemPrompt: str | None = None
+
+
+class AiReviewRequest(BaseModel):
+    period: Literal["week", "month"]
 
 
 class SettingsUpdate(BaseModel):
@@ -83,6 +126,7 @@ class SettingsUpdate(BaseModel):
     aiApiKey: str | None = None
     aiSystemPrompt: str | None = None
     aiThinking: bool | None = None
+    avatarTransparent: bool | None = None
 
 
 class LoginRequest(BaseModel):
@@ -97,6 +141,10 @@ class RefreshRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
     currentPassword: str
     newPassword: str
+
+
+class ChangeUsernameRequest(BaseModel):
+    newUsername: str
 
 
 class DeepSeekShareImportRequest(BaseModel):

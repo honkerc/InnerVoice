@@ -1,5 +1,6 @@
 import os
 import secrets
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -8,14 +9,59 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
+from config import DATA_DIR
 from models import User
 
-JWT_SECRET = os.getenv("JWT_SECRET", "yushenduihua-dev-secret-change-me")
+_JWT_SECRET_FILE = DATA_DIR / ".jwt_secret"
+
+
+def _resolve_jwt_secret() -> str:
+    env_secret = os.getenv("JWT_SECRET", "").strip()
+    if env_secret:
+        return env_secret
+    stored = ""
+    if _JWT_SECRET_FILE.exists():
+        stored = _JWT_SECRET_FILE.read_text(encoding="utf-8").strip()
+    if stored:
+        return stored
+    generated = secrets.token_hex(32)
+    _JWT_SECRET_FILE.write_text(generated, encoding="utf-8")
+    return generated
+
+
+JWT_SECRET = _resolve_jwt_secret()
 ACCESS_TOKEN_MINUTES = int(os.getenv("ACCESS_TOKEN_MINUTES", "60"))
 REFRESH_TOKEN_DAYS = int(os.getenv("REFRESH_TOKEN_DAYS", "30"))
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer_scheme = HTTPBearer(auto_error=False)
+
+LOGIN_MAX_ATTEMPTS = 5
+LOGIN_WINDOW_SECONDS = 300
+
+_login_failures: dict[str, list[float]] = {}
+
+
+def _prune_attempts(attempts: list[float], now: float) -> list[float]:
+    return [t for t in attempts if now - t < LOGIN_WINDOW_SECONDS]
+
+
+def is_login_locked(key: str) -> bool:
+    now = time.time()
+    attempts = _prune_attempts(_login_failures.get(key, []), now)
+    _login_failures[key] = attempts
+    return len(attempts) >= LOGIN_MAX_ATTEMPTS
+
+
+def register_login_failure(key: str) -> None:
+    now = time.time()
+    attempts = _prune_attempts(_login_failures.get(key, []), now)
+    attempts.append(now)
+    _login_failures[key] = attempts
+
+
+def clear_login_failures(key: str) -> None:
+    _login_failures.pop(key, None)
 
 
 def hash_password(password: str) -> str:
@@ -109,14 +155,22 @@ async def rotate_refresh_session(user: User) -> User:
 
 
 async def ensure_default_user() -> User:
-    user = await User.get_or_none(username="admin")
+    default_username = os.getenv("APP_DEFAULT_USERNAME", "").strip() or "admin"
+    user = await User.get_or_none(username=default_username)
     if user:
         return user
 
-    default_password = os.getenv("APP_DEFAULT_PASSWORD", "123456")
+    default_password = os.getenv("APP_DEFAULT_PASSWORD", "").strip()
+    if not default_password:
+        default_password = secrets.token_urlsafe(9)
+        print(
+            f"[与神对话] 未检测到已有账户，且未设置 APP_DEFAULT_PASSWORD，"
+            f"已自动生成初始账户：用户名 {default_username} / 密码 {default_password}"
+            f"（请尽快登录后在设置页修改密码）"
+        )
     return await User.create(
         id=f"user-{secrets.token_hex(6)}",
-        username="admin",
+        username=default_username,
         password_hash=hash_password(default_password),
         refresh_token_version=0,
     )

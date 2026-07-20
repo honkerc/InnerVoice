@@ -26,6 +26,8 @@ export interface Message {
   mediaUrl?: string;
   mediaName?: string;
   attachments?: MessageAttachment[];
+  tags?: string[] | null;
+  isFavorited?: boolean;
   quoteId?: string | null;
   quote?: QuotePreview | null;
   authorAvatarUrl?: string | null;
@@ -38,3 +40,30 @@ export interface MessageCreate {
   content: string;
   quoteId?: string | null;
 }
+
+export interface MessageQuery {
+  q?: string;
+  tag?: string;
+  before?: string;
+  after?: string;
+  around?: string;
+  limit?: number;
+}
+
+export interface MessageListResult {
+  items: Message[];
+  hasMoreBefore: boolean;
+  hasMoreAfter: boolean;
+  total?: number | null;
+  anchorId?: string | null;
+}
+
+export interface Persona {
+  id: string;
+  name: string;
+  icon?: string | null;
+  systemPrompt: string;
+  isBuiltin: boolean;
+}
+
+export type AiReviewPeriod = "week" | "month";

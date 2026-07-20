@@ -17,7 +17,7 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { readEmojiList } from "@/lib/emoji-storage";
 
-const props = defineProps<{ disabled?: boolean }>();
+defineProps<{ disabled?: boolean }>();
 const emit = defineEmits<{ pick: [emoji: string] }>();
 
 const emojis = computed(() => readEmojiList());

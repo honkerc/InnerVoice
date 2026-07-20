@@ -6,7 +6,14 @@ import {
   saveAuthTokens,
   type AuthTokens,
 } from "./auth";
-import type { Message, MessageCreate } from "./types";
+import type {
+  AiReviewPeriod,
+  Message,
+  MessageCreate,
+  MessageListResult,
+  MessageQuery,
+  Persona,
+} from "./types";
 import type { SettingsUpdate, UserSettings } from "./settings-types";
 import type { DeepSeekShareImportResult, DeepSeekSharePreview, DeepSeekImportMode } from "./import-types";
 
@@ -126,6 +133,18 @@ export async function login(
   return tokens;
 }
 
+export async function changeUsername(
+  newUsername: string
+): Promise<{ username: string }> {
+  const res = await authFetch("/api/auth/change-username", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ newUsername }),
+  });
+  if (!res.ok) throw new Error(await parseError(res, "修改用户名失败"));
+  return res.json();
+}
+
 export async function changePassword(
   currentPassword: string,
   newPassword: string
@@ -139,8 +158,25 @@ export async function changePassword(
   clearAuthTokens();
 }
 
-export async function fetchMessages(): Promise<Message[]> {
-  const res = await authFetch("/api/messages");
+export async function fetchMessages(
+  query: MessageQuery = {}
+): Promise<MessageListResult> {
+  const params = new URLSearchParams();
+  if (query.q) params.set("q", query.q);
+  if (query.tag) params.set("tag", query.tag);
+  if (query.before) params.set("before", query.before);
+  if (query.after) params.set("after", query.after);
+  if (query.around) params.set("around", query.around);
+  if (query.limit) params.set("limit", String(query.limit));
+  const qs = params.toString();
+  const res = await authFetch(`/api/messages${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("加载消息失败");
+  return res.json();
+}
+
+export async function fetchMessage(id: string): Promise<Message | null> {
+  const res = await authFetch(`/api/messages/${encodeURIComponent(id)}`);
+  if (res.status === 404) return null;
   if (!res.ok) throw new Error("加载消息失败");
   return res.json();
 }
@@ -177,7 +213,7 @@ export async function requestAiReply(
   return res.json();
 }
 
-export function sendImageMessage(
+export function sendMediaMessage(
   files: File[],
   content = "",
   quoteId?: string | null,
@@ -194,7 +230,7 @@ export function sendImageMessage(
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${API_ORIGIN}/api/messages/images`);
+    xhr.open("POST", `${API_ORIGIN}/api/messages/media`);
     if (token) xhr.setRequestHeader("Authorization", token);
 
     xhr.upload.onprogress = (event) => {
@@ -222,7 +258,7 @@ export function sendImageMessage(
               reject(new Error("登录已过期"));
               return;
             }
-            sendImageMessage(files, content, quoteId, onProgress)
+            sendMediaMessage(files, content, quoteId, onProgress)
               .then(resolve)
               .catch(reject);
           })
@@ -240,19 +276,124 @@ export function sendImageMessage(
   });
 }
 
+export async function editMessage(id: string, content: string): Promise<Message> {
+  const res = await authFetch(`/api/messages/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
+  if (!res.ok) throw new Error(await parseError(res, "修改失败"));
+  return res.json();
+}
+
 export async function deleteMessage(id: string): Promise<void> {
   const res = await authFetch(`/api/messages/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("删除失败");
 }
 
-export async function pinMessage(messageId: string | null): Promise<UserSettings> {
-  const res = await authFetch("/api/settings/pin", {
+export async function fetchFavorites(): Promise<Message[]> {
+  const res = await authFetch("/api/favorites");
+  if (!res.ok) throw new Error("加载收藏失败");
+  return res.json();
+}
+
+export async function favoriteMessage(id: string): Promise<Message> {
+  const res = await authFetch(`/api/messages/${encodeURIComponent(id)}/favorite`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error(await parseError(res, "收藏失败"));
+  return res.json();
+}
+
+export async function unfavoriteMessage(id: string): Promise<Message> {
+  const res = await authFetch(`/api/messages/${encodeURIComponent(id)}/favorite`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error(await parseError(res, "取消收藏失败"));
+  return res.json();
+}
+
+export async function fetchMessagesNearDate(date: string): Promise<MessageListResult> {
+  const res = await authFetch(`/api/messages/near-date?date=${encodeURIComponent(date)}`);
+  if (!res.ok) throw new Error(await parseError(res, "跳转失败"));
+  return res.json();
+}
+
+export async function requestAiReview(period: AiReviewPeriod): Promise<Message> {
+  const res = await authFetch("/api/messages/ai-review", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ period }),
+  });
+  if (!res.ok) throw new Error(await parseError(res, "生成回顾失败"));
+  return res.json();
+}
+
+export async function fetchPersonas(): Promise<Persona[]> {
+  const res = await authFetch("/api/personas");
+  if (!res.ok) throw new Error("加载人格失败");
+  return res.json();
+}
+
+export async function createPersona(data: {
+  name: string;
+  icon?: string | null;
+  systemPrompt?: string;
+}): Promise<Persona> {
+  const res = await authFetch("/api/personas", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(await parseError(res, "新增人格失败"));
+  return res.json();
+}
+
+export async function updatePersona(
+  id: string,
+  data: { name?: string; icon?: string | null; systemPrompt?: string }
+): Promise<Persona> {
+  const res = await authFetch(`/api/personas/${encodeURIComponent(id)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messageId }),
+    body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error(await parseError(res, "置顶失败"));
+  if (!res.ok) throw new Error(await parseError(res, "保存人格失败"));
   return res.json();
+}
+
+export async function deletePersona(id: string): Promise<void> {
+  const res = await authFetch(`/api/personas/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error(await parseError(res, "删除人格失败"));
+}
+
+export async function setActivePersona(personaId: string | null): Promise<UserSettings> {
+  const res = await authFetch("/api/settings/persona", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ personaId }),
+  });
+  if (!res.ok) throw new Error(await parseError(res, "切换人格失败"));
+  return res.json();
+}
+
+export async function exportMessages(format: "md" | "json"): Promise<void> {
+  const res = await authFetch(`/api/export?format=${format}`);
+  if (!res.ok) throw new Error(await parseError(res, "导出失败"));
+  const blob = await res.blob();
+  const disposition = res.headers.get("Content-Disposition") || "";
+  const match = disposition.match(/filename="?([^"]+)"?/);
+  const filename = match ? match[1] : `export.${format}`;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 export async function fetchSettings(): Promise<UserSettings> {

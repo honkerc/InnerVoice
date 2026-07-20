@@ -11,7 +11,7 @@
     <div class="ai-message-block__actions">
       <div class="message-actions-wrap" :class="{ 'message-actions-wrap--pinned': isPinned }">
         <MessageActions :copy-text-value="copyTextValue" :can-quote="canQuote" :can-pin="canPin" :is-pinned="isPinned"
-          @quote="$emit('quote')" @pin="$emit('pin')" />
+          can-delete @quote="$emit('quote')" @pin="$emit('pin')" @delete="$emit('delete')" />
       </div>
     </div>
   </section>
@@ -36,6 +36,7 @@ defineProps<{
 defineEmits<{
   quote: [];
   pin: [];
+  delete: [];
   jumpQuote: [id: string];
   previewImage: [url: string];
 }>();

@@ -1,11 +1,12 @@
 import re
 import uuid
 from pathlib import Path
+from typing import Literal
 
 import aiofiles
 from fastapi import HTTPException, UploadFile
 
-from config import UPLOAD_DIR
+from config import MAX_FILE_MB, MAX_VIDEO_MB, UPLOAD_DIR
 
 IMAGE_EXTENSIONS = {
     ".jpg",
@@ -18,6 +19,37 @@ IMAGE_EXTENSIONS = {
     ".heif",
 }
 
+VIDEO_EXTENSIONS = {
+    ".mp4",
+    ".mov",
+    ".webm",
+    ".mkv",
+    ".avi",
+    ".m4v",
+}
+
+# 不接受上传的可执行文件类型，避免把上传目录当可执行文件/网页托管
+EXECUTABLE_EXTENSIONS = {
+    ".exe",
+    ".sh",
+    ".bat",
+    ".cmd",
+    ".com",
+    ".msi",
+    ".ps1",
+    ".scr",
+    ".apk",
+    ".jar",
+    ".html",
+    ".htm",
+    ".xhtml",
+    ".shtml",
+    ".svg",
+    ".svgz",
+}
+
+MediaKind = Literal["image", "video", "file"]
+
 
 def sanitize_filename(filename: str) -> str:
     name = Path(filename).name.strip()
@@ -28,11 +60,40 @@ def sanitize_filename(filename: str) -> str:
 
 
 def is_image_file(file: UploadFile) -> bool:
+    ext = Path(file.filename or "").suffix.lower()
+    if ext in EXECUTABLE_EXTENSIONS:
+        return False
     content_type = (file.content_type or "").lower()
     if content_type.startswith("image/"):
         return True
-    ext = Path(file.filename or "").suffix.lower()
     return ext in IMAGE_EXTENSIONS
+
+
+def is_video_file(file: UploadFile) -> bool:
+    content_type = (file.content_type or "").lower()
+    if content_type.startswith("video/"):
+        return True
+    ext = Path(file.filename or "").suffix.lower()
+    return ext in VIDEO_EXTENSIONS
+
+
+def detect_kind(file: UploadFile) -> MediaKind:
+    if is_image_file(file):
+        return "image"
+    if is_video_file(file):
+        return "video"
+    ext = Path(file.filename or "").suffix.lower()
+    if ext in EXECUTABLE_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"不支持上传可执行文件（{ext}）")
+    return "file"
+
+
+def _max_bytes_for(kind: MediaKind) -> int | None:
+    if kind == "video":
+        return MAX_VIDEO_MB * 1024 * 1024
+    if kind == "file":
+        return MAX_FILE_MB * 1024 * 1024
+    return None
 
 
 def make_stored_name(original_filename: str) -> str:
@@ -53,19 +114,30 @@ def resolve_upload_path(media_url: str | None) -> Path | None:
     return UPLOAD_DIR / rel
 
 
-async def save_image_file(file: UploadFile) -> tuple[str, str]:
+async def save_media_file(file: UploadFile, kind: MediaKind) -> tuple[str, str]:
     if not file.filename:
         raise HTTPException(status_code=400, detail="未选择文件")
-    if not is_image_file(file):
-        raise HTTPException(status_code=400, detail="请上传图片文件")
 
+    max_bytes = _max_bytes_for(kind)
     original_name = sanitize_filename(file.filename)
     stored_name = make_stored_name(original_name)
     stored_path = UPLOAD_DIR / stored_name
 
-    async with aiofiles.open(stored_path, "wb") as out:
-        while chunk := await file.read(1024 * 1024):
-            await out.write(chunk)
+    written = 0
+    try:
+        async with aiofiles.open(stored_path, "wb") as out:
+            while chunk := await file.read(1024 * 1024):
+                written += len(chunk)
+                if max_bytes is not None and written > max_bytes:
+                    limit_mb = max_bytes // (1024 * 1024)
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"文件过大，{kind} 类型上限为 {limit_mb}MB",
+                    )
+                await out.write(chunk)
+    except HTTPException:
+        stored_path.unlink(missing_ok=True)
+        raise
 
     return media_url_for(stored_name), original_name
 

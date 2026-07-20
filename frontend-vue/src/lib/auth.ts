@@ -29,6 +29,10 @@ export function saveAuthTokens(tokens: AuthTokens) {
   localStorage.setItem(USERNAME_KEY, tokens.username);
 }
 
+export function updateStoredUsername(username: string) {
+  localStorage.setItem(USERNAME_KEY, username);
+}
+
 export function clearAuthTokens() {
   localStorage.removeItem(ACCESS_KEY);
   localStorage.removeItem(REFRESH_KEY);

@@ -92,13 +92,28 @@ async def build_chat_messages(
     settings: UserSettings,
     history: list[Message],
     trigger: Message,
+    relevant: list[Message] | None = None,
+    system_prompt_override: str | None = None,
 ) -> list[dict[str, str]]:
     system_prompt = (
-        settings.ai_system_prompt.strip()
+        (system_prompt_override or "").strip()
+        or settings.ai_system_prompt.strip()
         or DEFAULTS["ai_system_prompt"]
     )
     full_system = f"{system_prompt.strip()}\n\n{AI_OUTPUT_RULES}"
     messages: list[dict[str, str]] = [{"role": "system", "content": full_system}]
+
+    if relevant:
+        messages.append(
+            {
+                "role": "system",
+                "content": "以下是可能相关的历史记录（时间不连续，仅供参考）：",
+            }
+        )
+        for msg in relevant:
+            item = message_to_chat(msg)
+            if item:
+                messages.append(item)
 
     for msg in history:
         item = message_to_chat(msg)
