@@ -8,15 +8,16 @@ User=www-data
 Group=www-data
 WorkingDirectory=/path/to/InnerVoice/backend
 
-# 环境变量
-Environment=INNERVOICE_PORT=8001
-Environment=INNERVOICE_DATA_DIR=/var/lib/innervoice/data
-Environment=AI_API_KEY=your-api-key-here
+# 数据目录、AI_API_KEY 等配置从 backend/.env 读取（config.py 自动加载），
+# 不要在本文件里写 Environment=，避免占位符被当真实值部署、或密钥进 git。
+# 部署前：cp backend/.env.example backend/.env 并填好真实值。
+# 下面 --port 是 uvicorn 实际监听端口，与 Nginx 的 proxy_pass 保持一致即可，
+# 改端口时同时改这里和 .env 里的 INNERVOICE_PORT（后者仅供应用内部读取）。
 
 # 启动命令
 ExecStart=/path/to/InnerVoice/backend/.venv/bin/python -m uvicorn main:app \
     --host 127.0.0.1 \
-    --port ${INNERVOICE_PORT} \
+    --port 8001 \
     --workers 2 \
     --log-level info
 
