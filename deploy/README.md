@@ -83,7 +83,7 @@ sudo systemctl status innervoice
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
-| `INNERVOICE_PORT` | 供应用内部读取；实际监听端口以 service 文件里的 `--port` 为准，两处保持一致 | `8001` |
+| `INNERVOICE_PORT` | 供应用内部读取；实际监听端口以 service 文件里的 `--port` 为准，两处保持一致（当前部署为 `8000`） | `8001` |
 | `INNERVOICE_DATA_DIR` | 数据目录（数据库、上传文件） | `backend/data/` |
 | `AI_API_KEY` | AI API Key（可选，也可在 settings 页面设置；留空/不填此项时以 settings 页面为准） | 空 |
 | `VITE_API_ORIGIN` | 前端直连后端地址（上传/SSE） | `http://127.0.0.1:8001` |
