@@ -276,6 +276,57 @@ export function sendMediaMessage(
   });
 }
 
+export function uploadFile(
+  file: File,
+  onProgress?: (loaded: number, total: number) => void
+): Promise<{ url: string; name: string; kind: "image" | "video" | "file" }> {
+  const form = new FormData();
+  form.append("file", file);
+  const token = authHeaders().Authorization;
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API_ORIGIN}/api/uploads`);
+    if (token) xhr.setRequestHeader("Authorization", token);
+
+    xhr.upload.onprogress = (event) => {
+      if (!onProgress) return;
+      onProgress(event.loaded, event.lengthComputable ? event.total : file.size);
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(JSON.parse(xhr.responseText));
+        } catch {
+          reject(new Error("上传失败"));
+        }
+        return;
+      }
+      if (xhr.status === 401) {
+        ensureRefreshed()
+          .then((ok) => {
+            if (!ok) {
+              redirectToLogin();
+              reject(new Error("登录已过期"));
+              return;
+            }
+            uploadFile(file, onProgress).then(resolve).catch(reject);
+          })
+          .catch(reject);
+        return;
+      }
+      parseErrorBody(xhr.responseText, "上传失败").then((msg) =>
+        reject(new Error(msg))
+      );
+    };
+
+    xhr.onerror = () =>
+      reject(new Error("无法连接后端，请确认 8000 端口服务已启动"));
+    xhr.send(form);
+  });
+}
+
 export async function editMessage(id: string, content: string): Promise<Message> {
   const res = await authFetch(`/api/messages/${encodeURIComponent(id)}`, {
     method: "PUT",

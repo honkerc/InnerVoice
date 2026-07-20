@@ -24,6 +24,12 @@ class MessageAttachmentOut(BaseModel):
     name: str
 
 
+class UploadOut(BaseModel):
+    url: str
+    name: str
+    kind: AttachmentType
+
+
 class MessageCreate(BaseModel):
     role: MessageRole = "me"
     type: MessageType = "text"

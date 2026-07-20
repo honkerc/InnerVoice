@@ -64,6 +64,7 @@ from schemas import (
     SetActivePersonaRequest,
     SettingsOut,
     SettingsUpdate,
+    UploadOut,
 )
 from seed import (
     remove_demo_messages,
@@ -955,6 +956,18 @@ def delete_message_media(msg: Message) -> None:
     if attachments:
         for item in attachments:
             delete_media_url(item.url)
+
+
+@app.post("/api/uploads", response_model=UploadOut, status_code=201)
+async def upload_file(file: UploadFile = File(...)) -> UploadOut:
+    kind = detect_kind(file)
+    try:
+        media_url, media_name = await save_media_file(file, kind)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"上传失败: {exc}") from exc
+    return UploadOut(url=media_url, name=media_name, kind=kind)
 
 
 @app.post("/api/messages/media", response_model=MessageOut, status_code=201)

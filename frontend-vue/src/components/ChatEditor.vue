@@ -87,7 +87,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { fetchMessages, requestAiReview, sendMediaMessage, sendTextMessage } from "@/lib/api";
+import { fetchMessages, requestAiReview, sendTextMessage, uploadFile } from "@/lib/api";
 import { shouldCallAi, shouldInvokeAi } from "@/lib/ai-trigger";
 import { readAiEnabled, writeAiEnabled } from "@/lib/ai-toggle";
 import type { AiStreamState } from "@/lib/ai-content";
@@ -99,7 +99,6 @@ import type { AiReviewPeriod, Message } from "@/lib/types";
 import {
   createPendingMedia,
   isImageFile,
-  revokeAllPendingMedia,
   revokePendingMedia,
   type PendingMedia,
 } from "@/lib/pending-media";
@@ -137,7 +136,6 @@ const sending = ref(false);
 const aiThinking = ref(false);
 const aiEnabled = ref(false);
 const aiReviewLoading = ref(false);
-const uploadProgress = ref<number | null>(null);
 const pendingMedia = ref<PendingMedia[]>([]);
 const expanded = ref(false);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
@@ -147,7 +145,7 @@ const dateInputRef = ref<HTMLInputElement | null>(null);
 const zoneRef = ref<HTMLDivElement | null>(null);
 
 const quoteId = computed(() => props.quotingMessage?.id ?? null);
-const uploading = computed(() => sending.value && pendingMedia.value.length > 0);
+const uploading = computed(() => pendingMedia.value.length > 0);
 
 // “/” 斜杠命令
 interface SearchResult {
@@ -174,7 +172,8 @@ const canSend = computed(
     !sending.value &&
     !aiThinking.value &&
     !inSearch.value &&
-    (input.value.trim().length > 0 || pendingMedia.value.length > 0),
+    !uploading.value &&
+    input.value.trim().length > 0,
 );
 
 watch(
@@ -227,18 +226,14 @@ function applyAiPrefix() {
 
 const placeholder = computed(() => {
   if (props.quotingMessage) return "回复引用消息……支持 Markdown";
-  if (pendingMedia.value.length > 0) {
-    return aiEnabled.value
-      ? "添加说明（Markdown），Enter 发送，AI 已开启"
-      : "添加说明（Markdown），Enter 发送；@ai 可召唤 AI";
-  }
+  if (uploading.value) return "附件上传中，请稍候…";
   return aiEnabled.value
     ? "输入消息，支持 Markdown，AI 已开启，Enter 发送"
     : "输入消息，支持 Markdown；/ 搜索历史，/ai 呼出 AI";
 });
 
 const sendLabel = computed(() => {
-  if (uploading.value && uploadProgress.value !== null) return `上传 ${uploadProgress.value}%`;
+  if (uploading.value) return "上传中…";
   if (aiThinking.value) return "AI 思考中…";
   if (sending.value) return "发送中…";
   return "发送";
@@ -331,6 +326,33 @@ function insertText(text: string) {
   });
 }
 
+function appendMarkdown(url: string, name: string, kind: string) {
+  const snippet = kind === "image" ? `![${name}](${url})` : `[${name}](${url})`;
+  const trimmed = input.value.replace(/\s+$/, "");
+  input.value = trimmed ? `${trimmed}\n${snippet}` : snippet;
+  requestAnimationFrame(() => {
+    const el = textareaRef.value;
+    el?.focus();
+    el?.setSelectionRange(input.value.length, input.value.length);
+  });
+}
+
+async function uploadAndInsert(files: File[]) {
+  const items = files.map((file) => createPendingMedia(file));
+  pendingMedia.value.push(...items);
+  for (const item of items) {
+    try {
+      const result = await uploadFile(item.file);
+      appendMarkdown(result.url, result.name, result.kind);
+    } catch (err) {
+      emit("error", err instanceof Error ? err.message : "上传失败");
+    } finally {
+      revokePendingMedia(item);
+      pendingMedia.value = pendingMedia.value.filter((m) => m.id !== item.id);
+    }
+  }
+}
+
 function addPendingImages(files: FileList | File[] | null) {
   if (!files || sending.value) return;
   const list = Array.from(files).filter(isImageFile);
@@ -338,14 +360,14 @@ function addPendingImages(files: FileList | File[] | null) {
     emit("error", "请选择图片文件");
     return;
   }
-  pendingMedia.value.push(...list.map((file) => createPendingMedia(file)));
+  void uploadAndInsert(list);
 }
 
 function addPendingAttachments(files: FileList | File[] | null) {
   if (!files || sending.value) return;
   const list = Array.from(files);
   if (!list.length) return;
-  pendingMedia.value.push(...list.map((file) => createPendingMedia(file)));
+  void uploadAndInsert(list);
 }
 
 function onImageChange(event: Event) {
@@ -446,39 +468,21 @@ async function submit() {
     forceAi = true;
   }
 
-  const media = [...pendingMedia.value];
-  if ((!text && media.length === 0) || sending.value || aiThinking.value) return;
+  if (!text || sending.value || aiThinking.value || uploading.value) return;
 
   sending.value = true;
-  uploadProgress.value = null;
 
   try {
-    if (media.length === 0) {
-      const msg = await sendTextMessage({ content: text, quoteId: quoteId.value });
-      emit("clearQuote");
-      emit("sent", msg);
-      input.value = "";
-      clearDraftNow();
-      await invokeAiIfNeeded(text, msg.id, forceAi);
-      return;
-    }
-
-    const msg = await sendMediaMessage(media.map((item) => item.file), text, quoteId.value, (loaded, total) => {
-      if (total > 0) uploadProgress.value = Math.round((loaded / total) * 100);
-    });
-
-    if (quoteId.value) emit("clearQuote");
+    const msg = await sendTextMessage({ content: text, quoteId: quoteId.value });
+    emit("clearQuote");
     emit("sent", msg);
     input.value = "";
     clearDraftNow();
-    revokeAllPendingMedia(media);
-    pendingMedia.value = [];
     await invokeAiIfNeeded(text, msg.id, forceAi);
   } catch (err) {
     emit("error", err instanceof Error ? err.message : "发送失败");
   } finally {
     sending.value = false;
-    uploadProgress.value = null;
     textareaRef.value?.focus();
   }
 }

@@ -87,7 +87,7 @@ export function renderTemplate(content: string): string {
   const day = now.getDate();
   const hh = pad(now.getHours());
   const mm = pad(now.getMinutes());
-  const date = `${year}-${pad(month)}-${pad(day)}`;
+  const date = `${pad(year % 100)}${pad(month)}${pad(day)}`;
   const map: Record<string, string> = {
     date,
     time: `${hh}:${mm}`,

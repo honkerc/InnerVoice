@@ -1,7 +1,7 @@
 <template>
   <div class="settings-page">
     <header class="settings-header">
-      <RouterLink to="/" class="settings-back">
+      <RouterLink to="/" class="settings-back" aria-label="返回" title="返回">
         <IconChevronLeft :size="18" />
         <span>返回</span>
       </RouterLink>
@@ -408,7 +408,7 @@ const TABS = [
   { key: "persona", label: "人格" },
   { key: "template", label: "模板" },
   { key: "emoji", label: "表情" },
-  { key: "import", label: "导入 / 导出" },
+  { key: "import", label: "备份" },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 
