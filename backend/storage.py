@@ -6,7 +6,7 @@ from typing import Literal
 import aiofiles
 from fastapi import HTTPException, UploadFile
 
-from config import MAX_FILE_MB, MAX_VIDEO_MB, UPLOAD_DIR
+from config import UPLOAD_DIR
 
 IMAGE_EXTENSIONS = {
     ".jpg",
@@ -88,14 +88,6 @@ def detect_kind(file: UploadFile) -> MediaKind:
     return "file"
 
 
-def _max_bytes_for(kind: MediaKind) -> int | None:
-    if kind == "video":
-        return MAX_VIDEO_MB * 1024 * 1024
-    if kind == "file":
-        return MAX_FILE_MB * 1024 * 1024
-    return None
-
-
 def make_stored_name(original_filename: str) -> str:
     safe = sanitize_filename(original_filename)
     return f"{uuid.uuid4().hex[:12]}_{safe}"
@@ -114,30 +106,17 @@ def resolve_upload_path(media_url: str | None) -> Path | None:
     return UPLOAD_DIR / rel
 
 
-async def save_media_file(file: UploadFile, kind: MediaKind) -> tuple[str, str]:
+async def save_media_file(file: UploadFile) -> tuple[str, str]:
     if not file.filename:
         raise HTTPException(status_code=400, detail="未选择文件")
 
-    max_bytes = _max_bytes_for(kind)
     original_name = sanitize_filename(file.filename)
     stored_name = make_stored_name(original_name)
     stored_path = UPLOAD_DIR / stored_name
 
-    written = 0
-    try:
-        async with aiofiles.open(stored_path, "wb") as out:
-            while chunk := await file.read(1024 * 1024):
-                written += len(chunk)
-                if max_bytes is not None and written > max_bytes:
-                    limit_mb = max_bytes // (1024 * 1024)
-                    raise HTTPException(
-                        status_code=413,
-                        detail=f"文件过大，{kind} 类型上限为 {limit_mb}MB",
-                    )
-                await out.write(chunk)
-    except HTTPException:
-        stored_path.unlink(missing_ok=True)
-        raise
+    async with aiofiles.open(stored_path, "wb") as out:
+        while chunk := await file.read(1024 * 1024):
+            await out.write(chunk)
 
     return media_url_for(stored_name), original_name
 

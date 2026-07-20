@@ -18,9 +18,7 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 AI_API_KEY = os.getenv("AI_API_KEY", "").strip()
 
-# 附件上传大小上限（图片不限制，与现状保持一致）
-MAX_VIDEO_MB = 1024
-MAX_FILE_MB = 1024
+# 头像大小上限（附件/视频/文件不限制）
 MAX_AVATAR_MB = 8
 
 # 后端监听端口

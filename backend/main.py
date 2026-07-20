@@ -962,7 +962,7 @@ def delete_message_media(msg: Message) -> None:
 async def upload_file(file: UploadFile = File(...)) -> UploadOut:
     kind = detect_kind(file)
     try:
-        media_url, media_name = await save_media_file(file, kind)
+        media_url, media_name = await save_media_file(file)
     except HTTPException:
         raise
     except Exception as exc:
@@ -990,7 +990,7 @@ async def upload_media(
     try:
         for file in files:
             kind = detect_kind(file)
-            media_url, media_name = await save_media_file(file, kind)
+            media_url, media_name = await save_media_file(file)
             saved.append((media_url, media_name, kind))
 
         msg = await create_media_message_record(saved, caption, quote_id, role)
