@@ -24,7 +24,7 @@ MAX_FILE_MB = 50
 MAX_AVATAR_MB = 8
 
 # 后端监听端口
-INNERVOICE_PORT = int(os.getenv("INNERVOICE_PORT", "8001"))
+INNERVOICE_PORT = int(os.getenv("INNERVOICE_PORT", "8000"))
 
 TORTOISE_ORM = {
     "connections": {"default": f"sqlite://{DB_PATH}"},

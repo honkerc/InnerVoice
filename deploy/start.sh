@@ -9,7 +9,7 @@ set -e
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 # 从环境变量读取配置（与 config.py 一致）
-INNERVOICE_PORT="${INNERVOICE_PORT:-8001}"
+INNERVOICE_PORT="${INNERVOICE_PORT:-8000}"
 INNERVOICE_DATA_DIR="${INNERVOICE_DATA_DIR:-$ROOT_DIR/backend/data}"
 
 echo "=== InnerVoice 后端启动 ==="

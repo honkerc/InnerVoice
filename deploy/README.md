@@ -17,11 +17,11 @@ InnerVoice/
 ## 快速启动（开发）
 
 ```bash
-# 1. 启动后端（默认端口 8001）
+# 1. 启动后端（默认端口 8000）
 cd backend
-python -m uvicorn main:app --reload --host 127.0.0.1 --port 8001
+python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 
-# 2. 启动前端 dev server（端口 3000，自动代理 /api 到 8001）
+# 2. 启动前端 dev server（端口 3000，自动代理 /api 到 8000）
 cd frontend-vue
 npm run dev
 ```
@@ -49,7 +49,7 @@ npm run build
 #### 方式一：一键脚本
 
 ```bash
-# 默认端口 8001
+# 默认端口 8000
 bash deploy/start.sh
 
 # 自定义端口
@@ -83,10 +83,10 @@ sudo systemctl status innervoice
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
-| `INNERVOICE_PORT` | 供应用内部读取；实际监听端口以 service 文件里的 `--port` 为准，两处保持一致（当前部署为 `8000`） | `8001` |
+| `INNERVOICE_PORT` | 供应用内部读取；实际监听端口以 service 文件里的 `--port` 为准，两处保持一致 | `8000` |
 | `INNERVOICE_DATA_DIR` | 数据目录（数据库、上传文件） | `backend/data/` |
 | `AI_API_KEY` | AI API Key（可选，也可在 settings 页面设置；留空/不填此项时以 settings 页面为准） | 空 |
-| `VITE_API_ORIGIN` | 前端直连后端地址（上传/SSE） | `http://127.0.0.1:8001` |
+| `VITE_API_ORIGIN` | 前端直连后端地址（上传/SSE） | `http://127.0.0.1:8000` |
 
 > 修改端口后需同步修改 service 文件里的 `--port` 和 Nginx 配置中的 `proxy_pass` 地址。
 
